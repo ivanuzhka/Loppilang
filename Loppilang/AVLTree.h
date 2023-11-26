@@ -10,9 +10,10 @@ class NodeAVL
 {
 public:
 	NodeAVL* _left = nullptr, * _right = nullptr;
-	NodeAVL() : _key(0) {}
-	NodeAVL(string x) : _key(x) {}
+	NodeAVL() : _key(""), _type(-1) {}
+	NodeAVL(string x, int type) : _key(x), _type(type) {}
 	string _key;
+	int _type;
 };
 
 class AVLTree
@@ -28,7 +29,7 @@ private:
 
 	void balance(NodeAVL*&);
 
-	void insert(NodeAVL*&, string);
+	void insert(NodeAVL*&, string, int);
 
 	void erase(NodeAVL*&, string);
 
@@ -36,15 +37,19 @@ private:
 
 	int count(NodeAVL*, string) const;
 
+	int get_type(NodeAVL*, string) const;
+
+private:
 	NodeAVL* _tree;
 
 public:
 	AVLTree() : _tree(nullptr) {}
 	AVLTree(NodeAVL* other) : _tree(other) {}
 
-	void insert(string);
+	void insert(string, int);
 	void erase(string);
 	int count(string) const;
+	int get_type(string) const;
 
 	void bfs_out() const;
 };

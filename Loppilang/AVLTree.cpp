@@ -79,22 +79,22 @@ void AVLTree::balance(NodeAVL*& t)
 	}
 }
 
-void AVLTree::insert(NodeAVL*& t, string x)
+void AVLTree::insert(NodeAVL*& t, string x, int type)
 {
 	if (t == nullptr) {
-		t = new NodeAVL(x);
+		t = new NodeAVL(x, type);
 		return;
 	}
-	if (x < t->_key) insert(t->_left, x);
-	else if (x > t->_key) insert(t->_right, x);
+	if (x < t->_key) insert(t->_left, x, type);
+	else if (x > t->_key) insert(t->_right, x, type);
 	else return;
 
 	balance(t);
 }
 
-void AVLTree::insert(string x)
+void AVLTree::insert(string x, int type)
 {
-	insert(this->_tree, x);
+	insert(this->_tree, x, type);
 }
 
 void AVLTree::erase(NodeAVL*& t, string x)
@@ -142,7 +142,7 @@ void AVLTree::bfs_out(NodeAVL* t) const
 	while (!q.empty()) {
 		NodeAVL* tmp = q.front();
 		q.pop();
-		std::cout << tmp->_key << " ";
+		std::cout << tmp->_key << " " << tmp->_type << "\n";
 		if (tmp->_left != nullptr)
 			q.push(tmp->_left);
 		if (tmp->_right != nullptr)
@@ -158,9 +158,22 @@ int AVLTree::count(NodeAVL* t, string x) const
 	else return count(t->_left, x);
 }
 
+int AVLTree::get_type(NodeAVL* t, string x) const
+{
+	if (t == nullptr) return -1;
+	if (t->_key == x) return t->_type;
+	if (t->_key < x) return get_type(t->_right, x);
+	else return get_type(t->_left, x);
+}
+
 int AVLTree::count(string x) const
 {
 	return count(_tree, x);
+}
+
+int AVLTree::get_type(string x) const
+{
+	return get_type(_tree, x);
 }
 
 void AVLTree::bfs_out() const
