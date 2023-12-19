@@ -1,0 +1,149 @@
+<Programm> ::= <Scope> <Subprogramm>
+<Subprogramm> ::= <Scope> <Subprogramm> | E
+<Scope> ::= "scope" ( <Name> )? "{" <Statements> "}"
+
+
+<Name> ::= <Name_start> <Name_body>
+
+<Name_start> ::= [a-z] | "_"
+<Name_body> ::= <Symbol> <Name_body> | E
+
+<Names> ::= <Name> <Other_names>
+<Other_names> ::= "," <Name> <Other_names> | E
+
+
+<Symbol> ::= [a-z] | "_" | [0-9]
+
+<Statements> ::= <Statement> <Other_statements>
+<Other_statements> ::= <Statement> <Other_statements> | E
+
+<Statement> ::= <Function> | <Complicated_operator> | <Complicated_type> | <Var>
+
+<Function> ::= "function" <Name> (":" <Type>)? ("(" <Var_definition> ")")? "{" <Func_statements> "}"
+
+<Complicated_operator> ::= <If> | <While> | <For> | <Jump_operator> | <Lopin> | <Lopout> | <Delete>
+
+<Complicated_type> ::= "type" <Name> "{" <Var_definitions> "}"
+
+<Var> ::= <Var_definition> | <Var_declaration>
+
+<Vars> ::= <Var> <Other_vars>
+<Other_vars> ::= <Var> <Other_vars> | E
+
+<Var_definition> ::= <Type> <Name> ";"
+<Var_definitions> ::= <Var_definition> <Other_var_definitions>
+<Other_var_definitions> ::= <Var_definition> <Other_var_definitions> | E
+
+<Var_declaration> ::= <Type> <Name> "=" <Expr> ";"
+
+<Type> ::= <Const_type> | <Mutable_type>
+<Const_type> ::= "const" <Mutable_type>
+<Mutable_type> ::= <Num_type> | "string" | "array" "<" <Type> "," <Expr> ">" | <Name>
+<Num_type> ::= "byte" | "byte2" | "byte4" | "byte8"
+
+<Func_statements> ::= <Func_statement> | <Other_func_statements>
+<Other_func_statements> ::= <Func_statement> <Other_func_statements> | E
+
+<Func_statement> ::= <Complicated_operator> | <Var> | <Return>
+
+<Body_Statements> ::= <Body_statement> <Other_body_statements>
+<Other_body_statements> ::= <Body_statement> <Other_body_statements> | E
+<Body_statement> ::= <Complicated_operator> | <Complicated_type> | <Var>
+
+
+<If> ::= "if" "(" <Expr> ")" "{" <Body_Statements> "}" ( <Else_if> | <Else> )?
+<Else> ::= "else" "{" <Body_Statements> "}"
+<Else_if> ::= "else" <If>
+
+
+<While> ::= "while" "(" <Expr> ")" "{" <Body_Statements> "}" ( <Else> )? 
+
+
+<For> ::= "for" "(" <Vars> ";" <Expr> ";" <Expr> ")" "{" <Body_Statements> "}" ( <Else> )?
+
+<Jump_operator> ::= <Break> | <Continue> | <Jump>
+<Break> ::= "break" ";"
+<Continue> ::= "continue" ";"
+<Jump> ::= "jump" <Name> ";"
+
+<Lopin> ::= "lopin" "(" <Names> ")" ";"
+<Lopout> ::= "lopout" "(" <Exprs> ")" ";"
+
+<Delete> ::= "delete" <Name> ";"
+
+
+<Exprs> ::= <Expr> <Other_exprs>
+<Other_exprs> ::= <Expr> <Other_exprs> | E
+
+
+<Expr> ::= <Assignment_expr> <Other_expr>
+<Other_expr> ::= "," <Assignment_expr> <Other_expr> | E
+
+<Assignment_expr> ::= <Logical_implication> <Other_assignment_expr>
+<Other_assignment_expr> ::= <Assignment_operator> <Assignment_expr> <Other_assignment_expr> | E
+
+<Assignment_operator> ::= "=" | "+=" | "->=" | "-=" | "*=" | "**=" | "/=" | "^=" | "&=" | "|=" | "%="
+
+
+<Logical_implication> ::= <Logical_or> <Other_logical_implication>
+<Other_logical_implication> ::= "->" <Logical_or> <Other_logical_implication> | E
+
+<Logical_or> ::= <Logical_and> <Other_logical_or>
+<Other_logical_or> ::= "||" <Logical_and> | E
+
+<Logical_and> ::= <Bitwise_or> <Other_logical_and>
+<Other_logical_and> ::= "&&" <Bitwise_or> <Other_logical_and> | E
+
+
+<Bitwise_or> ::= <Bitwise_xor> <Other_bitwise_or>
+<Other_bitwise_or> ::= "|" <Bitwise_xor> <Other_bitwise_or> | E
+
+<Bitwise_xor> ::= <Bitwise_and> <Other_bitwise_xor>
+<Other_bitwise_xor> ::= "^" <Bitwise_and> <Other_bitwise_xor> | E
+
+<Bitwise_and> ::= <Comparison_equality> <Other_bitwise_and>
+<Other_bitwise_and> ::= "&" <Comparison_equality> <Other_bitwise_and> | E
+
+
+<Comparison_equality> ::= <Comparison_comparison> <Other_comparison_equality>
+<Other_comparison_equality> ::= <Comprarison_equality_operator> <Comparison_comparison> <Other_comparison_equality> | E
+
+<Comprarison_equality_operator> ::= "==" | "!="
+
+<Comparison_comparison> ::= <Sumsub> <Other_comparison_comparison>
+<Other_comparison_comparison> ::= <Comparison_comparison_operator> <Sumsub> <Other_comparison_comparison> | E
+
+<Comparison_comparison_operator> ::= ">" | ">=" | "<" | "<="
+
+
+<Sumsub> ::= <Muldiv> <Other_sumsub>
+<Other_sumsub> ::= <Sumsub_operator> <Muldiv> <Other_sumsub> | E
+<Sumsub_operator> ::= "+" | "-"
+
+<Muldiv> ::= <Power> <Other_muldiv>
+<Other_muldiv> ::= <Muldiv_operator> <Power> <Other_muldiv> | E
+<Muldiv_operator> ::= "/" | "//" | "*" | "%"
+
+<Power> ::= <Unary> <Other_power>
+<Other_power> ::= "**" <Power> <Other_power> | E
+
+<Unary> ::= <Unary_operator> <Unary> | <Call_expr> 
+<Unary_operator> ::= "++" | "--" | "+" | "-" | "!" | "~"
+
+
+<Call_expr> ::= <GenSec> <Other_call_expr>
+<Other_call_expr> ::= <Call_operator> <Other_call_expr> | E
+<Call_operator> ::= "[" <Expr> "]"
+
+<GenSec> ::= <Num_literal> | <String_literal> | <Name> ( "::" <Name> )? | <Init_list>
+
+<Num_literal> ::= [0-9] | [1-9] <Num_literal>
+<String_literal> ::= "'" <String_content> "'"
+<String_content> ::= <String_symbol> <String_content> | E
+<String_symbol> ::= <Symbol> | " " | "\n" | "\t"
+
+<Init_list> ::= "{" <Init_list_content> "}"
+<Init_list_content> ::= <Expr> <Other_init_list_content>
+<Other_init_list_content> ::= "," <Expr> <Other_init_list_content> | E
+
+<Return> ::= "return" <Expr>
