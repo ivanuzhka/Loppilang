@@ -62,9 +62,13 @@ public:
 	std::string check_uno();
 	std::string check_assignment();
 	std::string eq_bool() const;
+	std::string eq_void() const;
+	std::string eq_array() const;
 	void clear();
+	void check_comma();
 
 	int size() const { return _stack.size(); }
+	std::string back() const;
 	std::deque<std::string> get_stack() const { return _stack; }
 };
 

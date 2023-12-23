@@ -108,19 +108,18 @@ std::string TypeOpStack::check_assignment(std::string s1, std::string s2, std::s
         if (op == "+=" && op == "=")
             return "string";
     }
-    else if (s1 != s2)
+    else
     {
         if (_assign_ops.count(op) && max_byte(s1, s2) == s1)
             return s1;
     }
-    else
-    {
-        throw std::logic_error(s1 + " " + op + " " + s2);
-    }
+    throw std::logic_error(s1 + " " + op + " " + s2);
 }
 
 bool TypeOpStack::is_op(std::string s) const
 {
+    if (s == ",")
+        return true;
     if (_built_in_types.count(s) || _const_built_in_types.count(s))
         return false;
 
@@ -152,7 +151,9 @@ std::string TypeOpStack::check_bin()
     op = _stack.back(); _stack.pop_back();
     s1 = _stack.back(); _stack.pop_back();
 
-    return check_bin(s1, s2, op);
+    std::string ans = check_bin(s1, s2, op);
+    _stack.push_back(ans);
+    return ans;
 }
 
 std::string TypeOpStack::check_uno()
@@ -164,7 +165,9 @@ std::string TypeOpStack::check_uno()
     s = _stack.back(); _stack.pop_back();
     op = _stack.back(); _stack.pop_back();
 
-    return check_uno(s, op);
+    std::string ans = check_uno(s, op);
+    _stack.push_back(ans);
+    return ans;
 }
 
 std::string TypeOpStack::check_assignment()
@@ -177,7 +180,9 @@ std::string TypeOpStack::check_assignment()
     op = _stack.back(); _stack.pop_back();
     s1 = _stack.back(); _stack.pop_back();
 
-    return check_assignment(s1, s2, op);
+    std::string ans = check_assignment(s1, s2, op);
+    _stack.push_back(ans);
+    return ans;
 }
 
 std::string TypeOpStack::eq_bool() const
@@ -198,8 +203,51 @@ std::string TypeOpStack::eq_bool() const
     throw std::logic_error(s + " isn't bool(byte)");
 }
 
+std::string TypeOpStack::eq_void() const
+{
+    if (_stack.empty())
+        throw std::logic_error("too few elements");
+
+    std::string s = _stack.back();
+    if (is_op(s))
+        throw std::logic_error("top of the stack: " + s);
+
+    if (s == "void")
+        return s;
+
+    throw std::logic_error(s + " isn't void");
+}
+
+std::string TypeOpStack::eq_array() const
+{
+    std::string s = back();
+    if (s != "array" || s != "const_array")
+        throw std::logic_error(s + " isn't array or const_array");
+    return s;
+}
+
 void TypeOpStack::clear()
 {
     while (!_stack.empty())
         _stack.pop_back();
+}
+
+void TypeOpStack::check_comma()
+{
+    if (_stack.size() < 2)
+        throw std::logic_error("too few elements");
+
+    std::string s, op;
+    s = _stack.back(); _stack.pop_back();
+    op = _stack.back(); _stack.pop_back();
+
+    if (op == ",") return;
+    _stack.push_back(op);
+    _stack.push_back(s);
+}
+
+std::string TypeOpStack::back() const
+{
+    if (_stack.size() == 0)
+        throw std::logic_error("stack is empty");
 }

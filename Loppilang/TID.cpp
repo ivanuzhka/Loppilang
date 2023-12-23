@@ -55,16 +55,21 @@ func_parameters FuncTID::get_parametrs(std::string name) const
 	return _functions.at(name).second;
 }
 
-std::string FuncTID::get_return_type(std::string name, func_parameters params) const
+std::string FuncTID::get_return_type(std::string name, std::vector<std::string> param_types) const
 {
 	if (!_functions.count(name))
 	{
 		throw std::invalid_argument("Function " + name + " doesn't exist");
 	}
-	if (_functions.at(name).second != params)
-	{
+
+	if (param_types.size() != _functions.at(name).second.size())
 		throw std::invalid_argument("Parametrs are incorrect");
+
+	for (int i = 0; i < (int)param_types.size(); ++i) {
+		if (_functions.at(name).second[i].second != param_types[i])
+			throw std::invalid_argument("Parametrs are incorrect");
 	}
+
 	return _functions.at(name).first;
 }
 

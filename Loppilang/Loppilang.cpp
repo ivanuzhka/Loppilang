@@ -212,7 +212,7 @@ int main()
 {
 	try
 	{
-		process();
+		process_stack();
 	}
 	catch (std::invalid_argument error)
 	{

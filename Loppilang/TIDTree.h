@@ -53,9 +53,9 @@ private:
 	std::string find_var(Node* cur, std::string& name, const std::vector<std::string>& path, int position) const;
 	std::string find_var(Node* cur, std::string& name) const;
 
-	std::string find_func(Node* cur, std::string& name, func_parameters& params,
+	std::string find_func(Node* cur, std::string& name, std::vector<std::string>& param_types,
 							const std::vector<std::string>& path, int position) const;
-	std::string find_func(Node* cur, std::string& name, func_parameters& params) const;
+	std::string find_func(Node* cur, std::string& name, std::vector<std::string>& param_types) const;
 
 	std::map<std::string, std::string>& find_type(Node* cur, std::string name, std::vector<std::string> path, int position) const;
 	std::map<std::string, std::string>& find_type(Node* cur, std::string name) const;
@@ -80,7 +80,7 @@ public:
 	void leave_tid();
 
 	std::string get_var_type(std::string name) const;
-	std::string get_func_type(std::string name, func_parameters params) const;
+	std::string get_func_type(std::string name, std::vector<std::string> param_types) const;
 	std::map<std::string, std::string> get_type_fields(std::string name) const;
 	void check_fields(std::string type, std::vector<std::string> path) const;
 	void check_jumps() const;

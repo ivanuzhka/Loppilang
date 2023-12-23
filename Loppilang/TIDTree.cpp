@@ -70,12 +70,12 @@ std::string TIDTree::find_var(Node* cur, std::string& name) const
 	}
 }
 
-std::string TIDTree::find_func(Node* cur, std::string& name, func_parameters& params,
+std::string TIDTree::find_func(Node* cur, std::string& name, std::vector<std::string>& param_types,
 								const std::vector<std::string>& path, int position) const
 {
 	if (position == (int)path.size())
 	{
-		return cur->_tid.find_func(name, params);
+		return cur->_tid.find_func(name, param_types);
 	}
 
 	if (!cur->_children.count(path[position]))
@@ -86,25 +86,25 @@ std::string TIDTree::find_func(Node* cur, std::string& name, func_parameters& pa
 	auto down_type = cur->_children.find(path[position])->second->_type;
 	if (down_type == NodeType::SCOPE)
 	{
-		return find_func(cur->_children[path[position]], name, params, path, position + 1);
+		return find_func(cur->_children[path[position]], name, param_types, path, position + 1);
 	}
 	throw std::invalid_argument("path incorrect");
 }
 
-std::string TIDTree::find_func(Node* cur, std::string& name, func_parameters& params) const
+std::string TIDTree::find_func(Node* cur, std::string& name, std::vector<std::string>& param_types) const
 {
 	if (cur->_parent->_type == NodeType::ROOT)
 	{
-		return cur->_tid.find_func(name, params);
+		return cur->_tid.find_func(name, param_types);
 	}
 
 	try
 	{
-		return cur->_tid.find_func(name, params);
+		return cur->_tid.find_func(name, param_types);
 	}
 	catch (...)
 	{
-		return find_func(cur->_parent, name, params);
+		return find_func(cur->_parent, name, param_types);
 	}
 }
 
@@ -305,15 +305,15 @@ std::string TIDTree::get_var_type(std::string name) const
 	return find_var(_root, short_name, path, 0);
 }
 
-std::string TIDTree::get_func_type(std::string name, func_parameters params) const
+std::string TIDTree::get_func_type(std::string name, std::vector<std::string> param_types) const
 {
 	auto [short_name, path] = path_parser(name);
 
 	if (path.size() == 0)
 	{
-		return find_func(_current_node, short_name, params);
+		return find_func(_current_node, short_name, param_types);
 	}
-	return find_func(_root, short_name, params, path, 0);
+	return find_func(_root, short_name, param_types, path, 0);
 }
 
 std::map<std::string, std::string> TIDTree::get_type_fields(std::string name) const
@@ -367,6 +367,8 @@ void TIDTree::push_func(std::string name, std::string return_type, func_paramete
 	{
 		throw std::logic_error("you can create funnctions directly in scopes");
 	}
+
+	get_type_fields(return_type);
 
 	for (auto& [var, var_type] : params)
 	{

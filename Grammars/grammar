@@ -1,6 +1,6 @@
 <Programm> ::= <Scope> <Subrogramm>
 <Subprogramm> ::= <Scope> <Subprogramm> | E
-<Scope> ::= "scope" [<Name>] "{" <Statements> "}"
+<Scope> ::= "scope" <Name> <<create_scope>> "{" <Statements> "}" <<leave_tid>>
 
 
 <Name> ::= <Name_start> <Name_body>
@@ -19,13 +19,13 @@
 
 <Statement> ::= <Function> | <Complicated_operator> | <Complicated_type> | <Var>
 
-<Function> ::= "function" <Name> [ ":" <Type> ] [ "(" <Var_definition> ")" ] "{" <Func_statements> "}"
+<Function> ::= "function" <Name> [ ":" <Type> ] [ "(" <Var_definition> ")" ] <<push_func, create_tid>> "{" <Func_statements> "}" <<leave_tid>>
 
 <Complicated_operator> ::= <If> | <While> | <For> | <Jump_operator> | <Lopin> | <Lopout> | <Delete>
 
-<Complicated_type> ::= "type" <Name> "{" <Var_definitions> "}"
+<Complicated_type> ::= "type" <Name> "{" <Var_definitions> "}" <<push_type>>
 
-<Var> ::= <Var_definition> | <Var_declaration>
+<Var> ::= <Type> <Name> <<push_var>> ["=" <<push_typeop(Name), push_typeop("=")>> <Expr> <<check_bin>> <<stack_clear>>]? ";" 
 
 <Vars> ::= <Var> <Other_vars>
 <Other_vars> ::= <Var> <Other_vars> | E
@@ -51,25 +51,25 @@
 <Body_statement> ::= <Complicated_operator> | <Complicated_type> | <Var>
 
 
-<If> ::= "if" "(" <Expr> ")" "{" <Body_Statements> "}" [<Else_if> | <Else>]
+<If> ::= "if" "(" <Expr> <<eq_bool; stack_clear>> ")" "{" <Body_Statements> "}" [<Else_if> | <Else>]
 <Else> ::= "else" "{" <Body_Statements> "}"
 <Else_if> ::= "else" <If>
 
 
-<While> ::= "while" "(" <Expr> ")" "{" <Body_Statements> "}" [<Else>] 
+<While> ::= "while" "(" <<stack_clear>> <Expr> <<eq_bool; stack_clear>> ")" "{" <Body_Statements> "}" [<Else>] 
 
 
-<For> ::= "for" "(" <Vars> ";" <Expr> ";" <Expr> ")" "{" <Body_Statements> "}" [<Else>]
+<For> ::= "for" "(" <Vars> ";" <<stack_clear>> <Expr> ";" <<eq_bool; stack_clear>> <Expr> ")" "{" <Body_Statements> "}" [<Else>]
 
 <Jump_operator> ::= <Break> | <Continue> | <Jump>
 <Break> ::= "break" ";"
 <Continue> ::= "continue" ";"
-<Jump> ::= "jump" <Name> ";"
+<Jump> ::= "jump" <Name> <<push_jump>> ";"
 
 <Lopin> ::= "lopin" "(" <Names> ")" ";"
 <Lopout> ::= "lopout" "(" <Exprs> ")" ";"
 
-<Delete> ::= "delete" <Name> ";"
+<Delete> ::= "delete" <Name> <delete_name> ";"
 
 
 <Exprs> ::= <Expr> <Other_exprs>
@@ -77,65 +77,66 @@
 
 
 <Expr> ::= <Assignment_expr> <Other_expr>
-<Other_expr> ::= "," <Assignment_expr> <Other_expr> | E
+<Other_expr> ::= "," <<push(",")>> <Assignment_expr> <<check_comma>> <Other_expr> | E
 
 <Assignment_expr> ::= <Logical_implication> <Other_assignment_expr>
-<Other_assignment_expr> ::= <Assignment_operator> <Assignment_expr> <Other_assignment_expr> | E
+<Other_assignment_expr> ::= <Assignment_operator> <<push(op)>> <Assignment_expr> <<check_bin>> <Other_assignment_expr> | E
 
 <Assignment_operator> ::= "=" | "+=" | "->=" | "-=" | "*=" | "**=" | "/=" | "^=" | "&=" | "|=" | "%="
 
 
 <Logical_implication> ::= <Logical_or> <Other_logical_implication>
-<Other_logical_implication> ::= "->" <Logical_or> <Other_logical_implication> | E
+<Other_logical_implication> ::= "->" <<push("->")>> <Logical_or> <<check_bin>> <Other_logical_implication> | E
 
 <Logical_or> ::= <Logical_and> <Other_logical_or>
-<Other_logical_or> ::= "||" <Logical_and> | E
+<Other_logical_or> ::= "||" <<push("||")>> <Logical_and> <<check_bin>> | E
 
 <Logical_and> ::= <Bitwise_or> <Other_logical_and>
-<Other_logical_and> ::= "&&" <Bitwise_or> <Other_logical_and> | E
+<Other_logical_and> ::= "&&" <<push("&&")>> <Bitwise_or> <<check_bin>> <Other_logical_and> | E
 
 
 <Bitwise_or> ::= <Bitwise_xor> <Other_bitwise_or>
-<Other_bitwise_or> ::= "|" <Bitwise_xor> <Other_bitwise_or> | E
+<Other_bitwise_or> ::= "|" <<push("|")>> <Bitwise_xor> <<check_bin>> <Other_bitwise_or> | E
 
 <Bitwise_xor> ::= <Bitwise_and> <Other_bitwise_xor>
-<Other_bitwise_xor> ::= "^" <Bitwise_and> <Other_bitwise_xor> | E
+<Other_bitwise_xor> ::= "^" <<push("^")>> <Bitwise_and> <<check_bin>> <Other_bitwise_xor> | E
 
 <Bitwise_and> ::= <Comparison_equality> <Other_bitwise_and>
-<Other_bitwise_and> ::= "&" <Comparison_equality> <Other_bitwise_and> | E
+<Other_bitwise_and> ::= "&" <<push("&")>> <Comparison_equality> <<check_bin>> <Other_bitwise_and> | E
 
 
 <Comparison_equality> ::= <Comparison_comparison> <Other_comparison_equality>
-<Other_comparison_equality> ::= <Comprarison_equality_operator> <Comparison_comparison> <Other_comparison_equality> | E
+<Other_comparison_equality> ::= <Comprarison_equality_operator> <<push(op)>> <Comparison_comparison> <<check_bin>> <Other_comparison_equality> | E
 
 <Comprarison_equality_operator> ::= "==" | "!="
 
 <Comparison_comparison> ::= <Sumsub> <Other_comparison_comparison>
-<Other_comparison_comparison> ::= <Comparison_comparison_operator> <Sumsub> <Other_comparison_comparison> | E
+<Other_comparison_comparison> ::= <Comparison_comparison_operator> <<push(op)>> <Sumsub> <<check_bin>> <Other_comparison_comparison> | E
 
 <Comparison_comparison_operator> ::= ">" | ">=" | "<" | "<="
 
 
 <Sumsub> ::= <Muldiv> <Other_sumsub>
-<Other_sumsub> ::= <Sumsub_operator> <Muldiv> <Other_sumsub> | E
+<Other_sumsub> ::= <Sumsub_operator> <<push(op)>> <Muldiv> <<check_bin>> <Other_sumsub> | E
 <Sumsub_operator> ::= "+" | "-"
 
 <Muldiv> ::= <Power> <Other_muldiv>
-<Other_muldiv> ::= <Muldiv_operator> <Power> <Other_muldiv> | E
+<Other_muldiv> ::= <Muldiv_operator> <<push(op)>> <Power> <<check_bin>> <Other_muldiv> | E
 <Muldiv_operator> ::= "/" | "//" | "*" | "%"
 
 <Power> ::= <Unary> <Other_power>
-<Other_power> ::= "**" <Power> <Other_power> | E
+<Other_power> ::= "**" <<push("**")>> <Power> <<check_bin>> <Other_power> | E
 
-<Unary> ::= <Unary_operator> <Unary> | <Call_expr> 
+<Unary> ::= <Unary_operator> <<push(op)>> <Unary> <<check_uno>> | <Call_expr> 
 <Unary_operator> ::= "++" | "--" | "+" | "-" | "!" | "~"
 
 
-<Call_expr> ::= <GenSec> <Other_call_expr>
-<Other_call_expr> ::= <Call_operator> <Other_call_expr> | E
-<Call_operator> ::= "[" <Logical_implication> "]"
+<Call_expr> ::= <GenSec> <Call_operator>
+# <Other_call_expr> ::= <Call_operator> <Other_call_expr> | E
+<Call_operator> ::= "[" <<eq_array>> <Expr> <<eq_bool>> "]" | E
 
-<GenSec> ::= <Num_literal> | <String_literal> | <Name> ["::" <Name>] | <Init_list>
+<GenSec> ::= <Num_literal> <<push("byte8")>> | <String_literal> <<push("string")>> | <Name> ["::" <Name>] <<push(get_var_type(lex))>> 
+                            | <Init_list> <<push("array")>> | "(" <Expr> ")"
 
 <Num_literal> ::= [0-9] | [1-9] <Num_literal>
 <String_literal> ::= "'" <String_content> "'"
@@ -145,5 +146,7 @@
 <Init_list> ::= "{" <Init_list_content> "}"
 <Init_list_content> ::= <Expr> <Other_init_list_content>
 <Other_init_list_content> ::= "," <Expr> <Other_init_list_content> | E
+
+<Call_func> ::= <Call_name> "(" <Exprs> ")" <<get_func_type>>
 
 <Return> ::= "return" <Expr>

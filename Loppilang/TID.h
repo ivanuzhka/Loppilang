@@ -34,11 +34,11 @@ public:
 	void insert(std::string name, std::string return_type, func_parameters params);
 
 	std::string get_return_type(std::string name) const;
-	std::string get_return_type(std::string name, func_parameters params) const;
+	std::string get_return_type(std::string name, std::vector<std::string> param_types) const;
 
 	std::vector<std::pair<std::string, std::string>> get_parametrs(std::string name) const;
 
-	std::map<std::string, std::pair<std::string,func_parameters>> get_funcs() const { return _functions; }
+	std::map<std::string, std::pair<std::string, func_parameters>> get_funcs() const { return _functions; }
 };
 
 struct TypeTID
@@ -80,9 +80,9 @@ public:
 
 
 	std::string find_var(std::string name) const { return _vars.get_type(name); }
-	std::string find_func(std::string name, std::vector<std::pair<std::string, std::string>> params) const
+	std::string find_func(std::string name, std::vector<std::string> param_types) const
 	{
-		return _funcs.get_return_type(name, params);
+		return _funcs.get_return_type(name, param_types);
 	}
 	std::string find_func(std::string name) const
 	{
