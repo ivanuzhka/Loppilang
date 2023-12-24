@@ -30,11 +30,6 @@ std::string TypeOpStack::max_byte(const std::string& l, const std::string r) con
 
 std::string TypeOpStack::check_bin(std::string s1, std::string s2, std::string op) const
 {
-    if (_assign_ops.count(op))
-    {
-        return check_assignment(s1, s2, op);
-    }
-
     s1 = const_parser(s1);
     s2 = const_parser(s2);
 
@@ -56,17 +51,14 @@ std::string TypeOpStack::check_bin(std::string s1, std::string s2, std::string o
         if (op == "==" || op == "!=")
             return "byte";
     }
-    else if (s1 != s2)
+    else
     {
         if (_comp_ops.count(op) || _logic_bin_ops.count(op))
             return "byte";
         else if (_bin_ops.count(op))
             return max_byte(s1, s2);
     }
-    else
-    {
-        throw std::logic_error(s1 + " " + op + " " + s2);
-    }
+    throw std::logic_error(s1 + " " + op + " " + s2);
 }
 
 std::string TypeOpStack::check_uno(std::string s, std::string op) const
@@ -105,19 +97,21 @@ std::string TypeOpStack::check_assignment(std::string s1, std::string s2, std::s
 
     if (s1 == s2 && s1 == "string")
     {
-        if (op == "+=" && op == "=")
+        if (op == "+=" || op == "=")
             return "string";
     }
     else
     {
-        if (_assign_ops.count(op) && max_byte(s1, s2) == s1)
-            return s1;
+        if (_assign_ops.count(op)/* && max_byte(s1, s2) == s1 */ )
+            return max_byte(s1, s2);
     }
     throw std::logic_error(s1 + " " + op + " " + s2);
 }
 
 bool TypeOpStack::is_op(std::string s) const
 {
+    if (s == "void")
+        return true;
     if (s == ",")
         return true;
     if (_built_in_types.count(s) || _const_built_in_types.count(s))
@@ -250,4 +244,14 @@ std::string TypeOpStack::back() const
 {
     if (_stack.size() == 0)
         throw std::logic_error("stack is empty");
+    return _stack.back();
+}
+
+std::string TypeOpStack::pop_back()
+{
+    if (_stack.size() == 0)
+        throw std::logic_error("stack is empty");
+    std::string ans = back();
+    _stack.pop_back();
+    return ans;
 }

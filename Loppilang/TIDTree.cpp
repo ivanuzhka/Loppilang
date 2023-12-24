@@ -1,5 +1,21 @@
 #include "TIDTree.h"
 
+std::string TIDTree::const_parser(const std::string& s) const
+{
+	if (s.size() <= 6) return s;
+
+	std::string pref = "";
+	for (int i = 0; i < 6; ++i)
+		pref += s[i];
+
+	if (pref != "const_") return s;
+
+	std::string res = "";
+	for (int i = 6; i < (int)s.size(); ++i)
+		res += s[i];
+	return res;
+}
+
 void Node::erase_child(std::string name)
 {
 	if (!_children.count(name))
@@ -157,6 +173,30 @@ void TIDTree::find_field(std::string& type, std::vector<std::string>& path, int 
 	if (position == (int)path.size()) return;
 
 	find_field(fields[path[position]], path, position + 1);
+}
+
+std::string TIDTree::check_return_type(Node* cur, const std::string& type) const
+{
+	if (cur->_type == NodeType::ROOT)
+		throw std::logic_error("you can't return " + type + " not in fucntions");
+	if (cur->_type != NodeType::FUNC)
+		return check_return_type(cur->_parent, type);
+
+	std::string return_type = cur->_tid.find_func(cur->_name);
+	return_type = const_parser(return_type);
+	auto new_type = const_parser(return_type);
+
+	if (return_type == new_type && (return_type == "string" || return_type == "array" || return_type == "void"))
+		return return_type;
+
+	while (return_type.size() > 4)
+		return_type.pop_back();
+	while (new_type.size() > 4)
+		return_type.pop_back();
+
+	if (return_type == new_type)
+		return type;
+	throw std::logic_error("type " + type + " does not match the return type: " + cur->_tid.find_func(cur->_name));
 }
 
 void TIDTree::erase_var(Node* cur, std::string name, std::vector<std::string> path, int position)
@@ -345,6 +385,13 @@ void TIDTree::check_jumps() const
 	}
 }
 
+std::string TIDTree::check_return(std::string name) const
+{
+	std::string type = get_var_type(name);
+
+	return check_return_type(_current_node, type);
+}
+
 
 void TIDTree::push_var(std::string name, std::string type)
 {
@@ -368,7 +415,8 @@ void TIDTree::push_func(std::string name, std::string return_type, func_paramete
 		throw std::logic_error("you can create funnctions directly in scopes");
 	}
 
-	get_type_fields(return_type);
+	if (return_type != "void")
+		get_type_fields(return_type);
 
 	for (auto& [var, var_type] : params)
 	{

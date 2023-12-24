@@ -70,5 +70,6 @@ public:
 	int size() const { return _stack.size(); }
 	std::string back() const;
 	std::deque<std::string> get_stack() const { return _stack; }
+	std::string pop_back();
 };
 

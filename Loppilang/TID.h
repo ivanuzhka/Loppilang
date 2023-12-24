@@ -83,6 +83,10 @@ public:
 	std::string find_func(std::string name, std::vector<std::string> param_types) const
 	{
 		return _funcs.get_return_type(name, param_types);
+	std::string find_func(std::string name, std::vector<std::string> param_types) const
+	{
+		return _funcs.get_return_type(name, param_types);
+	}
 	}
 	std::string find_func(std::string name) const
 	{
