@@ -88,7 +88,7 @@ public:
 	std::map<std::string, std::string> get_type_fields(std::string name) const;
 	void check_fields(std::string type, std::vector<std::string> path) const;
 	void check_jumps() const;
-	std::string check_return(std::string name) const;
+	std::string check_return(std::string type) const;
 
 	void push_var(std::string name, std::string type);
 	void push_func(std::string name, std::string return_type, func_parameters params);

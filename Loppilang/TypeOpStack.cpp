@@ -28,6 +28,23 @@ std::string TypeOpStack::max_byte(const std::string& l, const std::string r) con
         return l.back() > r.back() ? l : r;
 }
 
+std::string TypeOpStack::check_cast(const std::string& s1, const std::string s2) const
+{
+    auto f = const_parser(s1), s = const_parser(s2);
+
+    if (f == s && (f == "string" || f == "array"))
+        return f;
+
+    while (f.size() > 4)
+        f.pop_back();
+    while (s.size() > 4)
+        s.pop_back();
+
+    if (f == s)
+        return f;
+    throw std::logic_error("type " + s1 + " does not match the return type: " + s2);
+}
+
 std::string TypeOpStack::check_bin(std::string s1, std::string s2, std::string op) const
 {
     s1 = const_parser(s1);
@@ -238,6 +255,12 @@ void TypeOpStack::check_comma()
     if (op == ",") return;
     _stack.push_back(op);
     _stack.push_back(s);
+}
+
+void TypeOpStack::check_init_list(const std::string& type, const std::vector<std::string>& other_types) const
+{
+    for (auto& el : other_types)
+        check_cast(el, type);
 }
 
 std::string TypeOpStack::back() const

@@ -192,7 +192,7 @@ std::string TIDTree::check_return_type(Node* cur, const std::string& type) const
 	while (return_type.size() > 4)
 		return_type.pop_back();
 	while (new_type.size() > 4)
-		return_type.pop_back();
+		new_type.pop_back();
 
 	if (return_type == new_type)
 		return type;
@@ -385,10 +385,8 @@ void TIDTree::check_jumps() const
 	}
 }
 
-std::string TIDTree::check_return(std::string name) const
+std::string TIDTree::check_return(std::string type) const
 {
-	std::string type = get_var_type(name);
-
 	return check_return_type(_current_node, type);
 }
 
