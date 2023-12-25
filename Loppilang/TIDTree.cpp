@@ -49,6 +49,25 @@ std::pair<std::string, std::vector<std::string>> TIDTree::path_parser(std::strin
 	return { name, path };
 }
 
+std::vector<std::string> TIDTree::path_parser(std::string raw, char sep) const
+{
+	std::vector<std::string> path;
+	for (int i = 0; i < (int)raw.size(); ++i)
+	{
+		if (raw[i] == sep)
+		{
+			path.push_back("");
+		}
+		else
+		{
+			path.back().push_back(raw[i]);
+		}
+	}
+
+	return path;
+}
+
+
 std::string TIDTree::find_var(Node* cur, std::string& name, const std::vector<std::string>& path, int position) const
 {
 	if (position == (int)path.size())
@@ -161,7 +180,7 @@ std::map<std::string, std::string>& TIDTree::find_type(Node* cur, std::string na
 	}
 }
 
-void TIDTree::find_field(std::string& type, std::vector<std::string>& path, int position) const
+std::string TIDTree::find_field(std::string& type, std::vector<std::string>& path, int position) const
 {
 	auto fields = get_type_fields(type);
 
@@ -170,9 +189,9 @@ void TIDTree::find_field(std::string& type, std::vector<std::string>& path, int 
 		throw std::invalid_argument("Type " + type + " hasn't field " + path[position]);
 	}
 
-	if (position == (int)path.size()) return;
+	if (position == (int)path.size() - 1) return fields[path[position]];
 
-	find_field(fields[path[position]], path, position + 1);
+	return find_field(fields[path[position]], path, position + 1);
 }
 
 std::string TIDTree::check_return_type(Node* cur, const std::string& type) const
@@ -182,9 +201,9 @@ std::string TIDTree::check_return_type(Node* cur, const std::string& type) const
 	if (cur->_type != NodeType::FUNC)
 		return check_return_type(cur->_parent, type);
 
-	std::string return_type = cur->_tid.find_func(cur->_name);
+	std::string return_type = cur->_parent->_tid.find_func(cur->_name);
 	return_type = const_parser(return_type);
-	auto new_type = const_parser(return_type);
+	auto new_type = const_parser(type);
 
 	if (return_type == new_type && (return_type == "string" || return_type == "array" || return_type == "void"))
 		return return_type;
@@ -196,7 +215,7 @@ std::string TIDTree::check_return_type(Node* cur, const std::string& type) const
 
 	if (return_type == new_type)
 		return type;
-	throw std::logic_error("type " + type + " does not match the return type: " + cur->_tid.find_func(cur->_name));
+	throw std::logic_error("type " + type + " does not match the return type: " + cur->_parent->_tid.find_func(cur->_name));
 }
 
 void TIDTree::erase_var(Node* cur, std::string name, std::vector<std::string> path, int position)
@@ -334,15 +353,22 @@ void TIDTree::leave_tid()
 }
 
 
-std::string TIDTree::get_var_type(std::string name) const
+std::string TIDTree::get_var_type(std::string name, std::string fields) const
 {
 	auto [short_name, path] = path_parser(name);
+	auto field_path = path_parser(fields, '.');
+
+	std::string name_type;
 
 	if (path.size() == 0)
-	{
-		return find_var(_current_node, short_name);
-	}
-	return find_var(_root, short_name, path, 0);
+		name_type = find_var(_current_node, short_name);
+	else
+		name_type = find_var(_root, short_name, path, 0);
+
+	if (field_path.size() == 0)
+		return name_type;
+
+	return check_fields(name_type, field_path);
 }
 
 std::string TIDTree::get_func_type(std::string name, std::vector<std::string> param_types) const
@@ -372,9 +398,9 @@ std::map<std::string, std::string> TIDTree::get_type_fields(std::string name) co
 	return find_type(_root, short_name, path, 0);
 }
 
-void TIDTree::check_fields(std::string type, std::vector<std::string> path) const
+std::string TIDTree::check_fields(std::string type, std::vector<std::string> path) const
 {
-	find_field(type, path, 0);
+	return find_field(type, path, 0);
 }
 
 void TIDTree::check_jumps() const
